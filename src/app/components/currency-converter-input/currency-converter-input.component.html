@@ -1,0 +1,29 @@
+<div class="currency-converter-input">
+  <div class="currency-converter-section">
+    <form [formGroup]="currencyConverterForm">
+      <div class="form-group">
+        <label class="form-group-label" for="cc_amount">Amount</label>
+        <input (keyup)="calculateConvertedAmount()" id="cc_amount" class="form-group-input" type="number" formControlName="amount"/>
+      </div>
+      <div class="form-group">
+        <label class="form-group-label" for="cc_currency">Currency</label>
+        <select id="cc_currency" class="form-group-input" formControlName="currency">
+          <option *ngFor="let currency of currencies" value="{{currency}}">{{currency}}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-group-label" for="cc_conversion_rate">Conversion rate used</label>
+        <input id="cc_conversion_rate" class="form-group-input" type="number" formControlName="conversionRate" readonly="true"/>
+      </div>
+      <div class="form-group">
+        <label class="form-group-label" for="cc_converted_amount">{{currencyConverterForm.value.currency}} amount</label>
+        <input (keyup)="calculateAmount()" id="cc_converted_amount" class="form-group-input" type="number" formControlName="convertedAmount"/>
+      </div>
+      <div class="form-group">
+        <label class="form-group-label" for="cc_exact_date">Exact date (optional)</label>
+        <input id="cc_exact_date" class="form-group-input" type="text" [singleDatePicker]="true" placeholder="Select date"
+         (change)="setCustomDate($event)"  [locale]="{format: 'YYYY-MM-DD'}" [maxDate]="maxDate" [minDate]="minDate" ngxDaterangepickerMd />
+      </div>
+    </form>
+  </div>
+</div>
