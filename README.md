@@ -1,6 +1,6 @@
 # test-task-currency-converter
 
-Simple web application written on Angular2+ to convert Canadian dollars into other currencies.
+Simple web application written on Angular2+ to convert Canadian dollars into other currencies according to selected exchange rate.
 Application has 5 inputs on main page: Amount for Canadian dollars value, Currency for selecting currency to convert in, Conversion rate to display selected conversion rate, Converted amount for Selected currency value and Exact date to get echange rate for exact date. Used Bank of Canada API to get exchange rate
 
 # Installation
