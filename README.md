@@ -6,8 +6,10 @@ Application has 5 inputs on main page: Amount for Canadian dollars value, Curren
 # Installation
 
 Step 1: Clone repository into local machine
+
 Step 2: Run 'npm install' in the local machine's console, opened on downloaded repository level
-Step 2: Run 'npm start'
+
+Step 3: Run 'npm start'
 
 The application will be available on 'http://localhost:4200' route
 
