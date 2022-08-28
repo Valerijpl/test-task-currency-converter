@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { CurrencyService } from '../../services/currency/currency.service';
 import * as moment from "moment";
+import { ReplaySubject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 
 @Component({
@@ -9,16 +11,18 @@ import * as moment from "moment";
   templateUrl: './currency-converter-input.component.html',
   styleUrls: ['./currency-converter-input.component.scss']
 })
-export class CurrencyConverterInputComponent implements OnInit {
+export class CurrencyConverterInputComponent implements OnInit, OnDestroy {
   public currencyConverterForm!: FormGroup;
+
+  private destroyed$ = new ReplaySubject<boolean>();
 
   public currencies: string[] = [
     "USD", "EUR", "JPY", "GBP", "AUD", "CHF", "CNY", "HKD", "MXN", "INR"
   ];
 
   public dateRange = {
-    startDate: moment(new Date()).subtract(1, 'days').format('YYYY-MM-DD').toString(),
-    endDate: moment(new Date()).format('YYYY-MM-DD').toString()
+    startDate: this.getStartDateRange(new Date()),
+    endDate: moment(new Date()).utcOffset('-0400').format('YYYY-MM-DD').toString()
   };
 
   public maxDate = moment(new Date());
@@ -45,8 +49,31 @@ export class CurrencyConverterInputComponent implements OnInit {
     });
   }
 
+  ngOnDestroy() {
+    this.destroyed$.next(true);
+    this.destroyed$.complete();
+  }
+
+  getStartDateRange(endDate: Date){
+    // THIS SCRIPT ALLOWS TO DEFINE LATEST UPDATE OF DAILY EXCHANGE RATE FROM BANK OF CANADA, COVERING WEEKEND DAYS AND TIME BEFORE DAILY UPDATE
+
+    let weekDay = moment(endDate).utcOffset('-0400').format('dddd').toString();
+
+    if (weekDay == 'Sunday'){
+      return moment(endDate).subtract(2, 'days').utcOffset('-0400').format('YYYY-MM-DD').toString()
+    } else if (weekDay == 'Saturday'){
+      return moment(endDate).subtract(1, 'days').utcOffset('-0400').format('YYYY-MM-DD').toString()
+    } else {
+      if (moment(endDate).utcOffset('-0400').set({hour:16,minute:30}).toDate() > endDate){
+        return moment(endDate).subtract(1, 'days').utcOffset('-0400').format('YYYY-MM-DD').toString()
+      } else {
+        return moment(endDate).utcOffset('-0400').format('YYYY-MM-DD').toString();
+      }
+    }
+  }
+
   getCurrencyExchangeRate(){
-    this.currencyService.getCurrencyExchangeRate(this.dateRange).subscribe(result => {
+    this.currencyService.getCurrencyExchangeRate(this.dateRange).pipe(takeUntil(this.destroyed$)).subscribe(result => {
       this.exchangeRateDaily = result.observations[result.observations.length - 1];
       this.resetAmountValues(this.currencyConverterForm.value.currency);
     }, err => {
@@ -73,9 +100,17 @@ export class CurrencyConverterInputComponent implements OnInit {
   }
 
   setCustomDate(event: any){
+    let selectedDate;
+
+    if (moment(event.startDate).isSame(moment(), 'day')){
+      selectedDate = new Date()
+    } else {
+      selectedDate = moment(event.startDate).set({hour: 23, minute: 59}).toDate();
+    }
+
     this.dateRange = {
-      startDate: moment(event.startDate).subtract(1, 'days').format('YYYY-MM-DD').toString(),
-      endDate: moment(event.startDate).format('YYYY-MM-DD').toString()
+      startDate: this.getStartDateRange(selectedDate),
+      endDate: moment(selectedDate).format('YYYY-MM-DD').toString()
     }
 
     this.getCurrencyExchangeRate();
